@@ -3,7 +3,7 @@ import type { H3Event } from 'h3'
 export async function vacantesApi(
     event: H3Event,
     path: string,
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET'
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET'
 ) {
     const token = getCookie(event, 'auth_token')
 
@@ -47,7 +47,7 @@ export async function vacantesApi(
                     Authorization: `Bearer ${token}`,
                     Accept: 'application/json'
                 },
-                ...(method === 'POST' || method === 'PUT'
+                ...(method === 'POST' || method === 'PUT' || method === 'PATCH'
                     ? { body: await readBody(event) }
                     : {})
             }
