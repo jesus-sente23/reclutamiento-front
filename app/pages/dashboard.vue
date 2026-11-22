@@ -1,123 +1,96 @@
+
 <script setup lang="ts">
 definePageMeta({
+  layout: 'dashboard',
   middleware: 'auth'
 })
 
-const usuario = ref({
-  name: '',
-  email: ''
-})
-
-const { data } = await useFetch<{
-  success: boolean
-  user: {
-    id: number
-    name: string
-    email: string
+const modulos = [
+  {
+    titulo: 'Unidades',
+    descripcion: 'Organización de los departamentos',
+    icono: 'i-lucide-building-2',
+    ruta: '/unidades'
+  },
+  {
+    titulo: 'Vacantes',
+    descripcion: 'Administración de puestos disponibles',
+    icono: 'i-lucide-briefcase-business',
+    ruta: '/vacantes'
+  },
+  {
+    titulo: 'Candidatos',
+    descripcion: 'Registro y gestión de candidatos',
+    icono: 'i-lucide-users',
+    ruta: '/candidatos'
+  },
+  {
+    titulo: 'Postulaciones',
+    descripcion: 'Seguimiento de solicitudes de empleo',
+    icono: 'i-lucide-file-text',
+    ruta: '/postulaciones'
+  },
+  {
+    titulo: 'Entrevistas',
+    descripcion: 'Programación y evaluación de entrevistas',
+    icono: 'i-lucide-calendar-days',
+    ruta: '/entrevistas'
+  },
+  {
+    titulo: 'Reportes',
+    descripcion: 'Estadísticas del proceso de selección',
+    icono: 'i-lucide-chart-column',
+    ruta: '/reportes'
   }
-}>('/api/auth/me')
-
-if (data.value?.user) {
-  usuario.value = data.value.user
-}
-
-const cerrandoSesion = ref(false)
-
-async function cerrarSesion() {
-  cerrandoSesion.value = true
-
-  try {
-    await $fetch('/api/auth/logout', {
-      method: 'POST'
-    })
-
-    await navigateTo('/login')
-  } catch (error) {
-    console.error('Error al cerrar sesión:', error)
-    cerrandoSesion.value = false
-  }
-}
+]
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-100 dark:bg-gray-950">
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-2xl font-bold">
+        Dashboard
+      </h1>
 
-    <header
-        class="bg-white dark:bg-gray-900 border-b
-             border-gray-200 dark:border-gray-800 p-5"
-    >
-      <div class="flex justify-between items-center">
-        <h1 class="text-xl font-bold">
-          Sistema de Reclutamiento
-        </h1>
+      <p class="text-gray-500 mt-1">
+        Bienvenido al Sistema de Reclutamiento
+        y Selección de Personal.
+      </p>
+    </div>
 
-        <UButton
-            color="error"
-            variant="outline"
-            icon="i-lucide-log-out"
-            :loading="cerrandoSesion"
-            @click="cerrarSesion"
-        >
-          Cerrar sesión
-        </UButton>
-      </div>
-    </header>
+    <UAlert
+        icon="i-lucide-circle-check"
+        color="success"
+        variant="soft"
+        title="Sistema funcionando"
+        description="Tu frontend Nuxt está conectado con Laravel."
+    />
 
-    <main class="max-w-6xl mx-auto p-6 space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+      <NuxtLink
+          v-for="modulo in modulos"
+          :key="modulo.ruta"
+          :to="modulo.ruta"
+          class="block"
+      >
+        <UCard class="h-full hover:ring-2 hover:ring-primary-400 transition-all">
+          <div class="flex items-start gap-4">
+            <div class="p-3 rounded-xl bg-primary-50 dark:bg-primary-950">
+              <UIcon :name="modulo.icono" class="text-2xl text-primary" />
+            </div>
 
-      <div>
-        <h2 class="text-2xl font-bold">
-          ¡Bienvenido, {{ usuario.name }}!
-        </h2>
+            <div>
+              <h3 class="font-semibold">
+                {{ modulo.titulo }}
+              </h3>
 
-        <p class="text-gray-500">
-          {{ usuario.email }}
-        </p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-        <UCard>
-          <div class="space-y-2">
-            <UIcon
-                name="i-lucide-briefcase-business"
-                class="text-3xl text-primary"
-            />
-            <h3 class="font-semibold">Vacantes</h3>
-            <p class="text-sm text-gray-500">
-              Administración de vacantes
-            </p>
+              <p class="text-sm text-gray-500 mt-2">
+                {{ modulo.descripcion }}
+              </p>
+            </div>
           </div>
         </UCard>
-
-        <UCard>
-          <div class="space-y-2">
-            <UIcon
-                name="i-lucide-users"
-                class="text-3xl text-primary"
-            />
-            <h3 class="font-semibold">Candidatos</h3>
-            <p class="text-sm text-gray-500">
-              Gestión de candidatos
-            </p>
-          </div>
-        </UCard>
-
-        <UCard>
-          <div class="space-y-2">
-            <UIcon
-                name="i-lucide-file-check"
-                class="text-3xl text-primary"
-            />
-            <h3 class="font-semibold">Postulaciones</h3>
-            <p class="text-sm text-gray-500">
-              Seguimiento de postulaciones
-            </p>
-          </div>
-        </UCard>
-
-      </div>
-
-    </main>
+      </NuxtLink>
+    </div>
   </div>
 </template>
