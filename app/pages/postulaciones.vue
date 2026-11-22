@@ -200,6 +200,174 @@ async function cambiarEstado(
     actualizandoId.value = null
   }
 }
+
+
+const generandoReporte = ref(false)
+
+async function generarReporte() {
+  generandoReporte.value = true
+  error.value = ''
+
+  try {
+    // Actualizar los datos según los filtros seleccionados
+    await refresh()
+
+    if (errorListado.value) {
+      throw new Error('No se pudieron consultar las postulaciones.')
+    }
+
+    const registros = postulaciones.value || []
+
+    if (registros.length === 0) {
+      error.value = 'No hay postulaciones para generar el reporte.'
+      return
+    }
+
+    // Cargar ExcelJS solamente cuando se necesita
+    const ExcelJS = await import('exceljs')
+
+    const workbook = new ExcelJS.Workbook()
+    const hoja = workbook.addWorksheet('Postulaciones')
+
+    const vacanteSeleccionada = catalogos.value?.vacantes.find(
+        v => v.id === filtroVacante.value
+    )
+
+    const estadoSeleccionado = catalogos.value?.estados.find(
+        e => e.id === filtroEstado.value
+    )
+
+    // Encabezado
+    hoja.mergeCells('A1:E1')
+    hoja.getCell('A1').value =
+        'SISTEMA DE RECLUTAMIENTO Y SELECCIÓN DE PERSONAL'
+
+    hoja.mergeCells('A2:E2')
+    hoja.getCell('A2').value = 'REPORTE DE POSTULACIONES'
+
+    hoja.getCell('A4').value = 'Fecha de generación:'
+    hoja.getCell('B4').value =
+        new Date().toLocaleString('es-GT')
+
+    hoja.getCell('A5').value = 'Vacante:'
+    hoja.getCell('B5').value =
+        vacanteSeleccionada?.titulo_puesto || 'Todas las vacantes'
+
+    hoja.getCell('A6').value = 'Estado:'
+    hoja.getCell('B6').value =
+        estadoSeleccionado?.nombre || 'Todos los estados'
+
+    hoja.getCell('A7').value = 'Total de postulaciones:'
+    hoja.getCell('B7').value = registros.length
+
+    // Encabezados de la tabla
+    const encabezados = [
+      'No.',
+      'Candidato',
+      'Vacante',
+      'Fuente de reclutamiento',
+      'Estado'
+    ]
+
+    const filaEncabezado = hoja.getRow(9)
+    filaEncabezado.values = encabezados
+    filaEncabezado.font = {
+      bold: true,
+      color: { argb: 'FFFFFFFF' }
+    }
+
+    filaEncabezado.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF1E3A5F' }
+    }
+
+    filaEncabezado.alignment = {
+      vertical: 'middle'
+    }
+
+    filaEncabezado.height = 25
+
+    // Agregar postulaciones
+    registros.forEach((postulacion, index) => {
+      hoja.addRow([
+        index + 1,
+        postulacion.candidato?.nombre_completo || 'N/A',
+        postulacion.vacante?.titulo_puesto || 'N/A',
+        postulacion.fuente_reclutamiento?.nombre || 'N/A',
+        postulacion.estado_postulacion?.nombre || 'N/A'
+      ])
+    })
+
+    // Ancho de columnas
+    hoja.getColumn(1).width = 10
+    hoja.getColumn(2).width = 35
+    hoja.getColumn(3).width = 40
+    hoja.getColumn(4).width = 28
+    hoja.getColumn(5).width = 22
+
+    // Formato de títulos
+    hoja.getCell('A1').font = {
+      bold: true,
+      size: 15,
+      color: { argb: 'FF1E3A5F' }
+    }
+
+    hoja.getCell('A2').font = {
+      bold: true,
+      size: 12
+    }
+
+    // Bordes de la tabla
+    for (let fila = 9; fila <= 9 + registros.length; fila++) {
+      for (let columna = 1; columna <= 5; columna++) {
+        hoja.getCell(fila, columna).border = {
+          bottom: {
+            style: 'thin',
+            color: { argb: 'FFE5E7EB' }
+          }
+        }
+      }
+    }
+
+    hoja.autoFilter = {
+      from: 'A9',
+      to: `E${9 + registros.length}`
+    }
+
+    // Generar archivo Excel
+    const buffer = await workbook.xlsx.writeBuffer()
+
+    const archivo = new Blob(
+        [new Uint8Array(buffer)],
+        {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        }
+    )
+
+    // Descargar archivo automáticamente
+    const url = URL.createObjectURL(archivo)
+    const enlace = document.createElement('a')
+
+    const fecha = new Date().toISOString().slice(0, 10)
+
+    enlace.href = url
+    enlace.download = `Reporte_Postulaciones_${fecha}.xlsx`
+
+    document.body.appendChild(enlace)
+    enlace.click()
+    enlace.remove()
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+
+  } catch (e) {
+    console.error('Error al generar el reporte:', e)
+    error.value = 'No se pudo generar el archivo Excel.'
+  } finally {
+    generandoReporte.value = false
+  }
+}
+
 </script>
 
 <template>
@@ -329,7 +497,7 @@ async function cambiarEstado(
           />
         </UFormField>
 
-        <div class="flex items-end">
+        <div class="flex flex-wrap items-end gap-3">
           <UButton
               color="neutral"
               variant="outline"
@@ -337,6 +505,16 @@ async function cambiarEstado(
               @click="filtroVacante = undefined; filtroEstado = undefined"
           >
             Limpiar filtros
+          </UButton>
+
+          <UButton
+              color="success"
+              icon="i-lucide-file-spreadsheet"
+              :loading="generandoReporte"
+              :disabled="status === 'pending'"
+              @click="generarReporte"
+          >
+            Generar reporte Excel
           </UButton>
         </div>
       </div>
