@@ -13,7 +13,6 @@ const menu = [
   { nombre: 'Candidatos', ruta: '/candidatos', icono: 'i-lucide-users' },
   { nombre: 'Postulaciones', ruta: '/postulaciones', icono: 'i-lucide-file-text' },
   { nombre: 'Entrevistas', ruta: '/entrevistas', icono: 'i-lucide-calendar-days' },
-  { nombre: 'Reportes', ruta: '/reportes', icono: 'i-lucide-chart-column' }
 ]
 
 const menuAbierto = ref(false)

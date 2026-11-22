@@ -35,12 +35,6 @@ const modulos = [
     descripcion: 'Programación y evaluación de entrevistas',
     icono: 'i-lucide-calendar-days',
     ruta: '/entrevistas'
-  },
-  {
-    titulo: 'Reportes',
-    descripcion: 'Estadísticas del proceso de selección',
-    icono: 'i-lucide-chart-column',
-    ruta: '/reportes'
   }
 ]
 </script>
