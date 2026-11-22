@@ -40,14 +40,24 @@ const probarConexion = async () => {
           Frontend funcionando
         </UBadge>
 
-        <div>
+        <div class="flex flex-col items-center gap-4">
+
           <UButton
               color="primary"
-              :loading="cargando"
               @click="probarConexion"
           >
             Probar conexión con Laravel
           </UButton>
+
+          <UButton
+              to="/login"
+              icon="i-lucide-log-in"
+              color="primary"
+              variant="outline"
+          >
+            Iniciar sesión
+          </UButton>
+
         </div>
 
         <UAlert
