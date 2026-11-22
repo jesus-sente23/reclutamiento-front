@@ -69,28 +69,28 @@ const {
 const opcionesPostulaciones = computed(() =>
     catalogos.value?.postulaciones.map(p => ({
       label: `${p.candidato?.nombre_completo || 'Candidato'} - ${p.vacante?.titulo_puesto || 'Vacante'} (#${p.id})`,
-      value: p.id
+      value: String(p.id)
     })) || []
 )
 
 const opcionesEntrevistadores = computed(() =>
     catalogos.value?.entrevistadores.map(u => ({
       label: u.name,
-      value: u.id
+      value: String(u.id)
     })) || []
 )
 
 const opcionesTipos = computed(() =>
     catalogos.value?.tipos.map(t => ({
       label: t.nombre,
-      value: t.id
+      value: String(t.id)
     })) || []
 )
 
 const opcionesResultados = computed(() =>
     catalogos.value?.resultados.map(r => ({
       label: r.nombre,
-      value: r.id
+      value: String(r.id)
     })) || []
 )
 
@@ -104,10 +104,10 @@ const error = ref('')
 
 const formulario = reactive({
   fecha_hora: '',
-  postulacion_id: undefined as number | undefined,
-  entrevistador_id: undefined as number | undefined,
-  tipo_entrevista_id: undefined as number | undefined,
-  resultado_entrevista_id: undefined as number | undefined,
+  postulacion_id: undefined as string | undefined,
+  entrevistador_id: undefined as string | undefined,
+  tipo_entrevista_id: undefined as string | undefined,
+  resultado_entrevista_id: undefined as string | undefined,
   observaciones: ''
 })
 
@@ -124,10 +124,12 @@ function limpiarFormulario() {
 function nuevaEntrevista() {
   limpiarFormulario()
 
+  const resultadoPendiente = catalogos.value?.resultados.find(
+      r => r.nombre.toLowerCase() === 'pendiente'
+  )
+
   formulario.resultado_entrevista_id =
-      catalogos.value?.resultados.find(
-          r => r.nombre.toLowerCase() === 'pendiente'
-      )?.id
+      resultadoPendiente ? String(resultadoPendiente.id) : undefined
 
   error.value = ''
   mensaje.value = ''
@@ -138,10 +140,10 @@ function editarEntrevista(entrevista: Entrevista) {
   editandoId.value = entrevista.id
   formulario.fecha_hora =
       entrevista.fecha_hora.replace(' ', 'T').substring(0, 16)
-  formulario.postulacion_id = entrevista.postulacion_id
-  formulario.entrevistador_id = entrevista.entrevistador_id
-  formulario.tipo_entrevista_id = entrevista.tipo_entrevista_id
-  formulario.resultado_entrevista_id = entrevista.resultado_entrevista_id
+  formulario.postulacion_id = String(entrevista.postulacion_id)
+  formulario.entrevistador_id = String(entrevista.entrevistador_id)
+  formulario.tipo_entrevista_id = String(entrevista.tipo_entrevista_id)
+  formulario.resultado_entrevista_id = String(entrevista.resultado_entrevista_id)
   formulario.observaciones = entrevista.observaciones || ''
 
   error.value = ''
@@ -195,7 +197,11 @@ async function guardarEntrevista() {
           method: editando ? 'PUT' : 'POST',
           body: {
             ...formulario,
-            fecha_hora: formulario.fecha_hora.replace('T', ' ')
+            fecha_hora: formulario.fecha_hora.replace('T', ' '),
+            postulacion_id: Number(formulario.postulacion_id),
+            entrevistador_id: Number(formulario.entrevistador_id),
+            tipo_entrevista_id: Number(formulario.tipo_entrevista_id),
+            resultado_entrevista_id: Number(formulario.resultado_entrevista_id)
           }
         }
     )

@@ -90,7 +90,7 @@ const todasVacantes = computed(() =>
 const opcionesEstados = computed(() =>
     catalogos.value?.estados.map(e => ({
       label: e.nombre,
-      value: e.id
+      value: String(e.id)
     })) || []
 )
 
@@ -110,7 +110,7 @@ const error = ref('')
 const formulario = reactive({
   candidato_id: undefined as number | undefined,
   vacante_id: undefined as number | undefined,
-  estado_postulacion_id: undefined as number | undefined,
+  estado_postulacion_id: undefined as string | undefined,
   fuente_reclutamiento_id: undefined as number | undefined
 })
 
@@ -118,9 +118,11 @@ function nuevaPostulacion() {
   formulario.candidato_id = undefined
   formulario.vacante_id = undefined
   formulario.estado_postulacion_id =
-      catalogos.value?.estados.find(e =>
-          e.nombre.toLowerCase() === 'recibida'
-      )?.id
+      String(
+          catalogos.value?.estados.find(
+              e => e.nombre.toLowerCase() === 'recibida'
+          )?.id ?? ''
+      )
   formulario.fuente_reclutamiento_id = undefined
 
   mensaje.value = ''
@@ -159,7 +161,10 @@ async function guardarPostulacion() {
   try {
     await $fetch('/api/postulaciones', {
       method: 'POST',
-      body: { ...formulario }
+      body: {
+        ...formulario,
+        estado_postulacion_id: Number(formulario.estado_postulacion_id)
+      }
     })
 
     formularioAbierto.value = false
@@ -576,7 +581,7 @@ async function generarReporte() {
 
             <td class="p-3 min-w-44">
               <USelect
-                  :model-value="postulacion.estado_postulacion_id"
+                  :model-value="String(postulacion.estado_postulacion_id)"
                   :items="opcionesEstados"
                   :loading="actualizandoId === postulacion.id"
                   :disabled="actualizandoId !== null"

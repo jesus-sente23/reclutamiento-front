@@ -38,21 +38,21 @@ const { data: catalogos, error: errorCatalogos } = await useFetch<{
 const opcionesUnidades = computed(() =>
     catalogos.value?.unidades.map(u => ({
       label: u.nombre,
-      value: u.id
+      value: String(u.id)
     })) || []
 )
 
 const opcionesModalidades = computed(() =>
     catalogos.value?.modalidades.map(m => ({
       label: m.nombre,
-      value: m.id
+      value: String(m.id)
     })) || []
 )
 
 const opcionesEstados = computed(() =>
     catalogos.value?.estados.map(e => ({
       label: e.nombre,
-      value: e.id
+      value: String(e.id)
     })) || []
 )
 
@@ -69,9 +69,9 @@ const formulario = reactive({
   salario_minimo: 0,
   salario_maximo: 0,
   ubicacion: '',
-  unidad_id: undefined as number | undefined,
-  modalidad_trabajo_id: undefined as number | undefined,
-  estado_vacante_id: undefined as number | undefined
+  unidad_id: undefined as string | undefined,
+  modalidad_trabajo_id: undefined as string | undefined,
+  estado_vacante_id: undefined as string | undefined
 })
 
 function limpiarFormulario() {
@@ -100,9 +100,9 @@ function editarVacante(vacante: Vacante) {
   formulario.salario_minimo = Number(vacante.salario_minimo)
   formulario.salario_maximo = Number(vacante.salario_maximo)
   formulario.ubicacion = vacante.ubicacion
-  formulario.unidad_id = vacante.unidad_id
-  formulario.modalidad_trabajo_id = vacante.modalidad_trabajo_id
-  formulario.estado_vacante_id = vacante.estado_vacante_id
+  formulario.unidad_id = String(vacante.unidad_id)
+  formulario.modalidad_trabajo_id = String(vacante.modalidad_trabajo_id)
+  formulario.estado_vacante_id = String(vacante.estado_vacante_id)
 
   mensaje.value = ''
   error.value = ''
@@ -128,7 +128,12 @@ async function guardarVacante() {
             : '/api/vacantes',
         {
           method: editando ? 'PUT' : 'POST',
-          body: { ...formulario }
+          body: {
+            ...formulario,
+            unidad_id: Number(formulario.unidad_id),
+            modalidad_trabajo_id: Number(formulario.modalidad_trabajo_id),
+            estado_vacante_id: Number(formulario.estado_vacante_id)
+          }
         }
     )
 
